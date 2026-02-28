@@ -1,0 +1,472 @@
+# Implementation Plan: Vibration Lifetime Prediction Platform
+
+## Overview
+
+This implementation plan breaks down the Mechanical System Lifetime Prediction Platform into discrete, incremental coding tasks. The approach follows a bottom-up strategy: build core signal processing functions first, then the API layer, then the AI model, and finally the frontend visualization. Each task builds on previous work, ensuring continuous integration and early validation.
+
+## Tasks
+
+- [x] 1. Set up project structure and backend environment
+  - Create backend/ and frontend/ directories
+  - Set up Python virtual environment in backend/venv
+  - Create requirements.txt with dependencies: fastapi, uvicorn, numpy, scipy, scikit-learn, hypothesis
+  - Create placeholder files: app.py, signal_processing.py, ai_model.py, simulator.py, data_store.json
+  - Create frontend files: index.html, style.css, script.js
+  - Initialize data_store.json with default schema
+  - _Requirements: 23.3, 23.4, 24.1, 24.2, 24.3_
+
+- [x] 2. Implement core signal processing functions
+  - [x] 2.1 Implement FFT computation function
+    - Write compute_fft() function that takes time and acceleration arrays
+    - Use numpy.fft.rfft() for real-valued FFT
+    - Return frequency and amplitude arrays
+    - Handle edge cases: empty arrays, single-element arrays
+    - _Requirements: 3.1, 3.2, 3.3_
+  - [ ]\* 2.2 Write property test for FFT computation
+    - **Property 5: FFT computation**
+    - **Validates: Requirements 3.1, 3.2**
+    - Test that frequency values are non-negative and monotonically increasing
+  - [ ]\* 2.3 Write property test for FFT amplitude non-negativity
+    - **Property 6: FFT amplitude non-negativity**
+    - **Validates: Requirements 3.3**
+    - Test that all amplitude values >= 0
+  - [ ]\* 2.4 Write property test for FFT array length consistency
+    - **Property 7: FFT array length consistency**
+    - **Validates: Requirements 3.3, 3.4**
+    - Test that frequency and amplitude arrays have same length
+
+  - [x] 2.5 Implement damping factor calculation
+    - Write calculate_damping_factor() function using logarithmic decrement
+    - Use scipy.signal.find_peaks() to detect peaks
+    - Compute delta = ln(x1/x2) and zeta = delta / sqrt(4π² + delta²)
+    - Return default value (0.05) if insufficient peaks
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5_
+  - [ ]\* 2.6 Write property test for damping factor bounds
+    - **Property 8: Damping factor calculation**
+    - **Validates: Requirements 4.1, 4.2, 4.3**
+    - Test that 0 <= zeta < 1 for underdamped systems
+
+  - [x] 2.7 Implement natural frequency detection
+    - Write detect_natural_frequency() function
+    - Find peak in amplitude spectrum (excluding DC component)
+    - Return frequency at maximum amplitude
+    - _Requirements: 5.1, 5.2, 5.3, 5.5_
+  - [ ]\* 2.8 Write property test for natural frequency DC exclusion
+    - **Property 9: Natural frequency detection excludes DC**
+    - **Validates: Requirements 5.1, 5.5**
+    - Test that detected natural_frequency > 0
+
+- [x] 3. Implement lifetime calculation functions
+  - [x] 3.1 Implement time-domain lifetime calculation
+    - Write calculate_lifetime_time_domain() function
+    - Use exponential decay model: A(t) = A0 _ exp(-zeta _ omega_n \* t)
+    - Solve for time when amplitude falls below threshold
+    - Return lifetime in hours with reasonable bounds (10-10000)
+    - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
+  - [ ]\* 3.2 Write property test for exponential decay lifetime
+    - **Property 10: Exponential decay lifetime model**
+    - **Validates: Requirements 6.1, 6.2, 6.5**
+    - Test that lifetime is inversely proportional to (zeta \* omega_n)
+
+  - [x] 3.3 Implement frequency-domain lifetime calculation
+    - Write calculate_lifetime_frequency_domain() function
+    - Compute spectral energy: E = sum(A(f)²)
+    - Calculate lifetime inversely proportional to energy
+    - Return lifetime in hours with reasonable bounds
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
+  - [ ]\* 3.4 Write property test for spectral energy calculation
+    - **Property 11: Spectral energy calculation**
+    - **Validates: Requirements 7.1**
+    - Test that E = sum(A(f)²)
+  - [ ]\* 3.5 Write property test for energy-lifetime inverse relationship
+    - **Property 12: Energy-lifetime inverse relationship**
+    - **Validates: Requirements 7.2**
+    - Test that higher energy gives shorter lifetime
+
+  - [x] 3.6 Implement natural frequency shift lifetime calculation
+    - Write calculate_lifetime_natural_frequency() function
+    - Compare detected frequency with baseline (default 50 Hz)
+    - Calculate lifetime ∝ 1 / |f_n - f_baseline|
+    - Return lifetime in hours with reasonable bounds
+    - _Requirements: 8.1, 8.2, 8.3, 8.4, 8.5_
+  - [ ]\* 3.7 Write property test for frequency shift lifetime
+    - **Property 13: Frequency shift lifetime calculation**
+    - **Validates: Requirements 8.1, 8.2**
+    - Test that lifetime ∝ 1/|f_n - f_baseline|
+
+  - [x] 3.8 Implement damping-based lifetime calculation
+    - Write calculate_lifetime_damping() function
+    - Calculate lifetime inversely proportional to damping factor
+    - Return lifetime in hours with reasonable bounds
+    - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
+  - [ ]\* 3.9 Write property test for damping-lifetime inverse relationship
+    - **Property 14: Damping-lifetime inverse relationship**
+    - **Validates: Requirements 9.1**
+    - Test that higher damping gives shorter lifetime
+  - [ ]\* 3.10 Write property test for lifetime bounds
+    - **Property 15: Lifetime bounds**
+    - **Validates: Requirements 7.4, 9.4**
+    - Test that all lifetimes are in range [10, 10000] hours
+
+  - [x] 3.11 Implement weighted average lifetime calculation
+    - Write calculate_weighted_average_lifetime() function
+    - Use formula: L_avg = 0.25 \* (L_time + L_freq + L_natural + L_damping)
+    - Ensure all four components are available before computing
+    - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
+  - [ ]\* 3.12 Write property test for weighted average formula
+    - **Property 16: Weighted average formula**
+    - **Validates: Requirements 10.1**
+    - Test that L*avg = 0.25 * L*time + 0.25 * L*freq + 0.25 * L*natural + 0.25 * L_damping
+  - [ ]\* 3.13 Write property test for average lifetime preconditions
+    - **Property 17: Average lifetime preconditions**
+    - **Validates: Requirements 10.3**
+    - Test that all four components are available before average is computed
+
+- [x] 4. Checkpoint - Ensure signal processing tests pass
+  - Run all signal processing unit and property tests
+  - Verify all functions handle edge cases correctly
+  - Ask the user if questions arise
+
+- [x] 5. Implement data store management
+  - [x] 5.1 Implement data store initialization
+    - Write init_data_store() function to create default JSON structure
+    - Include all required fields with default values
+    - _Requirements: 2.1, 2.2_
+  - [x] 5.2 Implement data store load/save functions
+    - Write load_data_store() function to read from data_store.json
+    - Write save_data_store() function to write to data_store.json
+    - Handle file not found and corrupted file errors
+    - Use file locking for concurrent access
+    - _Requirements: 2.4, 25.4_
+  - [x] 5.3 Implement data append function
+    - Write append_data() function to add new time/acceleration data
+    - Append to existing arrays without overwriting
+    - Set new_data_available flag to true
+    - _Requirements: 1.2, 1.3, 2.3_
+  - [ ]\* 5.4 Write property test for data append behavior
+    - **Property 2: Data append behavior**
+    - **Validates: Requirements 1.2, 2.3**
+    - Test that total length = previous length + new data length
+  - [ ]\* 5.5 Write property test for new data flag setting
+    - **Property 3: New data flag setting**
+    - **Validates: Requirements 1.3**
+    - Test that flag is set to true after append
+
+- [x] 6. Implement AI model module
+  - [x] 6.1 Implement feature extraction
+    - Write extract_features() function
+    - Compute: RMS acceleration, peak acceleration, damping factor, natural frequency, spectral energy
+    - Return feature vector with 5 elements
+    - _Requirements: 11.2_
+  - [ ]\* 6.2 Write property test for AI feature extraction
+    - **Property 19: AI feature extraction**
+    - **Validates: Requirements 11.2**
+    - Test that exactly 5 features are extracted
+
+  - [x] 6.3 Implement AI model training function
+    - Write train_model() function using RandomForestRegressor
+    - Accept training data with features and target lifetimes
+    - Return trained model object
+    - Save model to file for persistence
+    - _Requirements: 11.1, 11.5_
+  - [x] 6.4 Implement AI lifetime prediction
+    - Write predict_lifetime() function
+    - Extract features from current data
+    - Use trained model to predict lifetime
+    - Return non-negative prediction
+    - Handle prediction errors with fallback to average lifetime
+    - _Requirements: 11.3, 11.4, 25.3_
+  - [ ]\* 6.5 Write property test for AI prediction non-negativity
+    - **Property 20: AI prediction non-negativity**
+    - **Validates: Requirements 11.3, 11.4**
+    - Test that ai_lifetime >= 0
+
+- [x] 7. Implement FastAPI backend endpoints
+  - [x] 7.1 Implement POST /send-data endpoint
+    - Accept JSON with time and acceleration arrays
+    - Validate input format and data types
+    - Call append_data() to store new data
+    - Trigger signal processing pipeline
+    - Return success response
+    - Handle invalid JSON with 400 error
+    - _Requirements: 1.1, 1.4, 25.1_
+  - [ ]\* 7.2 Write property test for data format acceptance
+    - **Property 1: Data format acceptance**
+    - **Validates: Requirements 1.1**
+    - Test that valid time/acceleration arrays are accepted
+  - [ ]\* 7.3 Write property test for invalid JSON error response
+    - **Property 39: Invalid JSON error response**
+    - **Validates: Requirements 25.1**
+    - Test that malformed JSON returns 4xx error
+
+  - [x] 7.2 Implement signal processing pipeline orchestration
+    - Write trigger_processing() function
+    - Call compute_fft(), calculate_damping_factor(), detect_natural_frequency()
+    - Call all four lifetime calculation functions
+    - Call calculate_weighted_average_lifetime()
+    - Call AI predict_lifetime()
+    - Save all results to data store
+    - _Requirements: 1.5, 3.4, 4.4, 5.3, 6.3, 7.3, 8.3, 9.3, 10.2, 11.4_
+  - [ ]\* 7.3 Write property test for processing trigger
+    - **Property 4: Processing trigger**
+    - **Validates: Requirements 1.5**
+    - Test that all metrics are recalculated after data submission
+  - [ ]\* 7.4 Write property test for average lifetime reactivity
+    - **Property 18: Average lifetime reactivity**
+    - **Validates: Requirements 10.5**
+    - Test that average updates when component lifetimes change
+
+  - [x] 7.5 Implement GET /get-data endpoint
+    - Return new data if new_data_available is true
+    - Return cached results if flag is false
+    - Set new_data_available to false after retrieval
+    - Return JSON with all computed metrics
+    - _Requirements: 12.1, 12.2, 12.4, 12.5_
+  - [ ]\* 7.6 Write property test for conditional data response
+    - **Property 21: Conditional data response**
+    - **Validates: Requirements 12.1, 12.2**
+    - Test that response varies based on new_data_available flag
+  - [ ]\* 7.7 Write property test for flag reset on retrieval
+    - **Property 23: Flag reset on retrieval**
+    - **Validates: Requirements 12.4**
+    - Test that flag is set to false after GET /get-data
+
+  - [x] 7.8 Implement GET /full-refresh endpoint
+    - Return complete dataset with all arrays and metrics
+    - Include all required fields in response
+    - _Requirements: 12.3_
+  - [ ]\* 7.9 Write property test for full refresh completeness
+    - **Property 22: Full refresh completeness**
+    - **Validates: Requirements 12.3**
+    - Test that all required fields are present in response
+  - [ ]\* 7.10 Write property test for JSON response format
+    - **Property 24: JSON response format**
+    - **Validates: Requirements 12.5**
+    - Test that responses are valid JSON with required fields
+
+  - [x] 7.11 Add CORS middleware for frontend communication
+    - Configure FastAPI CORS to allow frontend origin
+    - Enable credentials and common HTTP methods
+
+- [x] 8. Checkpoint - Ensure backend tests pass
+  - Run all backend unit and property tests
+  - Test API endpoints with curl or Postman
+  - Verify data persistence across server restarts
+  - Ask the user if questions arise
+
+- [x] 9. Implement vibration data simulator
+  - [x] 9.1 Implement signal generation function
+    - Write generate_vibration_signal() function
+    - Use formula: x(t) = A _ exp(-zeta _ omega _ t) _ sin(omega \* t)
+    - Add small random noise for realism
+    - Return time and acceleration arrays
+    - Allow configuration of amplitude, frequency, damping parameters
+    - _Requirements: 13.1, 13.3, 13.4, 13.5_
+  - [ ]\* 9.2 Write property test for damped oscillation formula
+    - **Property 25: Damped oscillation formula**
+    - **Validates: Requirements 13.1**
+    - Test that generated signal follows damped sinusoidal pattern
+  - [ ]\* 9.3 Write property test for simulator output format
+    - **Property 26: Simulator output format**
+    - **Validates: Requirements 13.4**
+    - Test that time and acceleration arrays have equal length
+  - [ ]\* 9.4 Write property test for simulator parameter influence
+    - **Property 27: Simulator parameter influence**
+    - **Validates: Requirements 13.5**
+    - Test that amplitude parameter affects signal magnitude
+
+  - [x] 9.5 Implement continuous simulator loop
+    - Write run_simulator() async function
+    - Generate signal chunks at regular intervals (2 seconds)
+    - Send data to /send-data endpoint using aiohttp
+    - Run indefinitely until stopped
+    - _Requirements: 13.2_
+
+- [x] 10. Implement frontend HTML structure
+  - [x] 10.1 Create industrial-themed HTML layout
+    - Create header with title and status indicators
+    - Create grid layout with multiple panels
+    - Add panel for time-domain chart
+    - Add panel for frequency-domain chart
+    - Add panel for damping factor display (numeric + gauge)
+    - Add panel for natural frequency display
+    - Add panel for lifetime calculations (4 values + average)
+    - Add panel for AI prediction comparison
+    - Add error message display area
+    - Include animated gear SVG graphics
+    - _Requirements: 15.1, 16.1, 17.1, 17.2, 18.1, 19.1-19.5, 20.1, 20.2, 22.1, 22.2_
+
+- [x] 11. Implement frontend CSS styling
+  - [x] 11.1 Create industrial theme styles
+    - Use dark background (#1a1a1a or similar)
+    - Add steel/gunmetal textures
+    - Use neon blue/cyan accents (#00d9ff or similar)
+    - Add subtle grid overlays
+    - Use monospace or technical fonts (e.g., 'Roboto Mono', 'Courier New')
+    - Style panels with borders and shadows
+    - Add smooth transitions for metric updates
+    - Ensure text contrast for readability
+    - _Requirements: 21.1, 21.2, 21.3, 21.4, 21.5, 22.3, 22.5_
+  - [x] 11.2 Create responsive gauge visualization for damping factor
+    - Use CSS or SVG to create circular gauge
+    - Add color zones for normal/abnormal ranges
+    - Animate gauge needle/fill on updates
+
+- [x] 12. Implement frontend JavaScript data fetching
+  - [x] 12.1 Implement polling function
+    - Write pollData() async function
+    - Fetch from /get-data endpoint every 2 seconds
+    - Check new_data_available flag in response
+    - Call update functions if new data available
+    - Handle fetch errors with error display
+    - _Requirements: 14.1, 14.2, 25.5_
+  - [x] 12.2 Implement full refresh function
+    - Write fullRefresh() async function
+    - Fetch from /full-refresh endpoint
+    - Initialize all charts and metrics with complete data
+    - Call on page load
+    - _Requirements: 14.3_
+  - [x] 12.3 Set up polling interval and page load handler
+    - Call setInterval(pollData, 2000)
+    - Add window.addEventListener('load', fullRefresh)
+
+- [x] 13. Implement frontend chart visualizations
+  - [x] 13.1 Implement time-domain chart
+    - Use Chart.js or HTML5 Canvas for line chart
+    - Plot time vs acceleration
+    - Add axis labels: "Time (s)" and "Acceleration (m/s²)"
+    - Implement incremental update function
+    - Handle large datasets efficiently
+    - _Requirements: 15.1, 15.2, 15.3, 15.4, 15.5_
+  - [ ]\* 13.2 Write unit test for time chart updates
+    - Test that chart updates when new data arrives
+    - Verify data points are added incrementally
+
+  - [x] 13.3 Implement frequency-domain chart
+    - Use Chart.js or HTML5 Canvas for line chart
+    - Plot frequency vs amplitude
+    - Add axis labels: "Frequency (Hz)" and "Amplitude"
+    - Highlight natural frequency peak with marker
+    - Implement update function
+    - _Requirements: 16.1, 16.2, 16.3, 16.4, 16.5_
+  - [ ]\* 13.4 Write property test for natural frequency peak highlighting
+    - **Property 29: Natural frequency peak highlighting**
+    - **Validates: Requirements 16.3**
+    - Test that peak marker is placed at natural frequency
+
+- [x] 14. Implement frontend metrics display updates
+  - [x] 14.1 Implement damping factor display update
+    - Write updateDampingFactor() function
+    - Update numeric display with 3-4 decimal places
+    - Update gauge visualization
+    - Apply color coding based on value range
+    - _Requirements: 17.3, 17.4, 17.5_
+  - [ ]\* 14.2 Write property test for damping factor precision
+    - **Property 31: Damping factor precision**
+    - **Validates: Requirements 17.4**
+    - Test that display shows 3-4 decimal places
+  - [ ]\* 14.3 Write property test for damping color coding
+    - **Property 32: Damping color coding**
+    - **Validates: Requirements 17.5**
+    - Test that colors change based on value range
+
+  - [x] 14.4 Implement natural frequency display update
+    - Write updateNaturalFrequency() function
+    - Update numeric display with appropriate precision
+    - Show visual indicator if frequency shifts from baseline
+    - _Requirements: 18.3, 18.4, 18.5_
+  - [ ]\* 14.5 Write property test for frequency shift indication
+    - **Property 34: Frequency shift indication**
+    - **Validates: Requirements 18.4**
+    - Test that indicator appears when shift exceeds threshold
+  - [ ]\* 14.6 Write property test for frequency display precision
+    - **Property 35: Frequency display precision**
+    - **Validates: Requirements 18.5**
+    - Test that display shows appropriate precision
+
+  - [x] 14.7 Implement lifetime calculations display update
+    - Write updateLifetimeMetrics() function
+    - Update all four lifetime displays with units (hours)
+    - Highlight weighted average prominently
+    - _Requirements: 19.1, 19.2, 19.3, 19.4, 19.5_
+
+  - [x] 14.8 Implement AI comparison panel update
+    - Write updateAIComparison() function
+    - Display AI prediction and average lifetime
+    - Calculate percentage difference: |ai - avg| / avg \* 100
+    - Apply color coding based on difference magnitude
+    - _Requirements: 20.1, 20.2, 20.3, 20.4, 20.5_
+  - [ ]\* 14.9 Write property test for percentage difference calculation
+    - **Property 36: Percentage difference calculation**
+    - **Validates: Requirements 20.3**
+    - Test that percentage = |ai_lifetime - average_lifetime| / average_lifetime \* 100
+  - [ ]\* 14.10 Write property test for comparison color coding
+    - **Property 37: Comparison color coding**
+    - **Validates: Requirements 20.4**
+    - Test that colors change based on percentage difference
+  - [ ]\* 14.11 Write property test for comparison panel updates
+    - **Property 38: Comparison panel updates**
+    - **Validates: Requirements 20.5**
+    - Test that panel updates when new predictions arrive
+
+- [ ] 15. Checkpoint - Ensure frontend tests pass
+  - Run all frontend unit and property tests
+  - Test UI in browser with simulated data
+  - Verify all visualizations render correctly
+  - Ask the user if questions arise
+
+- [ ] 16. Integration and end-to-end testing
+  - [ ] 16.1 Test complete data flow
+    - Start backend server
+    - Start simulator
+    - Open frontend in browser
+    - Verify data flows from simulator → backend → frontend
+    - Verify real-time updates occur every 2 seconds
+  - [ ] 16.2 Test error handling scenarios
+    - Test backend unavailable (frontend error display)
+    - Test invalid data submission (backend error response)
+    - Test corrupted data_store.json (backend recovery)
+    - Test AI model failure (fallback to average)
+  - [ ] 16.3 Test data persistence
+    - Send data to backend
+    - Stop backend server
+    - Restart backend server
+    - Verify data is still present via /full-refresh
+  - [ ]\* 16.4 Write integration tests for complete pipeline
+    - Test simulator → /send-data → processing → /get-data → frontend
+    - Verify all metrics are computed correctly end-to-end
+
+- [ ] 17. Final polish and documentation
+  - [ ] 17.1 Add README.md with setup instructions
+    - Document Python environment setup
+    - Document dependency installation
+    - Document how to run backend server
+    - Document how to run simulator
+    - Document how to open frontend
+  - [ ] 17.2 Add inline code comments
+    - Comment complex algorithms (FFT, damping calculation)
+    - Comment API endpoint behavior
+    - Comment frontend update logic
+  - [ ] 17.3 Optimize performance
+    - Profile backend processing time
+    - Optimize FFT computation for large datasets
+    - Optimize frontend chart rendering
+    - Add data point limits if needed
+
+- [ ] 18. Final checkpoint - Complete system validation
+  - Run all tests (unit, property, integration)
+  - Verify all requirements are met
+  - Test system with various vibration patterns
+  - Ensure UI is responsive and professional
+  - Ask the user if questions arise
+
+## Notes
+
+- Tasks marked with `*` are optional and can be skipped for faster MVP
+- Each task references specific requirements for traceability
+- Checkpoints ensure incremental validation at key milestones
+- Property tests validate universal correctness properties across random inputs
+- Unit tests validate specific examples, edge cases, and UI interactions
+- The implementation follows a bottom-up approach: signal processing → API → AI → frontend
+- All code should handle edge cases gracefully (empty data, invalid inputs, etc.)
+- The system should maintain professional industrial aesthetics throughout

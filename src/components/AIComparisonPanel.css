@@ -1,0 +1,86 @@
+.comparison-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.comparison-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  border-left: 3px solid var(--accent-blue);
+  
+  /* Smooth transitions for updates */
+  transition: 
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.2s ease;
+}
+
+.comparison-item:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-color: var(--accent-cyan);
+  transform: translateX(3px);
+}
+
+/* Color coding based on agreement/divergence */
+.comparison-item.agreement {
+  border-left-color: var(--success-green);
+  background-color: rgba(0, 255, 136, 0.05);
+}
+
+.comparison-item.warning {
+  border-left-color: var(--warning-yellow);
+  background-color: rgba(255, 204, 0, 0.05);
+}
+
+.comparison-item.divergence {
+  border-left-color: var(--error-red);
+  background-color: rgba(255, 51, 102, 0.05);
+}
+
+.comparison-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  
+  /* Smooth transition */
+  transition: color 0.3s ease;
+}
+
+.comparison-item:hover .comparison-label {
+  color: var(--text-primary);
+}
+
+.comparison-value {
+  color: var(--accent-cyan);
+  font-weight: bold;
+  
+  /* Smooth transition for value updates */
+  transition: 
+    color 0.3s ease,
+    text-shadow 0.3s ease;
+  
+  text-shadow: 0 0 5px var(--accent-cyan-glow);
+}
+
+.comparison-item:hover .comparison-value {
+  text-shadow: 0 0 10px var(--accent-cyan-glow);
+}
+
+/* Percentage difference styling */
+.comparison-item.agreement .comparison-value {
+  color: var(--success-green);
+  text-shadow: 0 0 5px rgba(0, 255, 136, 0.4);
+}
+
+.comparison-item.warning .comparison-value {
+  color: var(--warning-yellow);
+  text-shadow: 0 0 5px rgba(255, 204, 0, 0.4);
+}
+
+.comparison-item.divergence .comparison-value {
+  color: var(--error-red);
+  text-shadow: 0 0 5px rgba(255, 51, 102, 0.4);
+}

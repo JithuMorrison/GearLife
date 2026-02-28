@@ -1,0 +1,365 @@
+/* Gauge container and visualization */
+.gauge-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 180px;
+  margin: 1rem 0;
+}
+
+/* Circular gauge with color zones */
+.gauge {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  
+  /* Steel/gunmetal background with gradient */
+  background: 
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1), transparent 50%),
+    linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  
+  /* Multiple borders for depth */
+  box-shadow: 
+    0 0 0 4px var(--border-color),
+    0 0 0 8px rgba(0, 0, 0, 0.3),
+    inset 0 4px 8px rgba(0, 0, 0, 0.5),
+    inset 0 -4px 8px rgba(255, 255, 255, 0.05),
+    0 0 20px rgba(0, 217, 255, 0.2);
+  
+  /* Smooth transitions for updates */
+  transition: 
+    box-shadow 0.5s ease,
+    transform 0.3s ease;
+}
+
+.gauge:hover {
+  transform: scale(1.05);
+  box-shadow: 
+    0 0 0 4px var(--accent-cyan),
+    0 0 0 8px rgba(0, 217, 255, 0.3),
+    inset 0 4px 8px rgba(0, 0, 0, 0.5),
+    inset 0 -4px 8px rgba(255, 255, 255, 0.05),
+    0 0 30px rgba(0, 217, 255, 0.4);
+}
+
+/* Gauge fill indicator (circular progress) */
+.gauge::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  
+  /* Conic gradient for color zones */
+  background: conic-gradient(
+    from 180deg,
+    var(--gauge-normal) 0deg,
+    var(--gauge-normal) calc(var(--gauge-percentage, 0) * 0.6deg),
+    transparent calc(var(--gauge-percentage, 0) * 0.6deg),
+    transparent 360deg
+  );
+  
+  /* Mask to create ring effect */
+  -webkit-mask: radial-gradient(transparent 55px, black 56px);
+  mask: radial-gradient(transparent 55px, black 56px);
+  
+  opacity: 0.6;
+  transition: opacity 0.5s ease;
+}
+
+.gauge:hover::before {
+  opacity: 0.8;
+}
+
+/* Color zones based on damping factor value */
+.gauge.normal::before {
+  background: conic-gradient(
+    from 180deg,
+    var(--gauge-normal) 0deg,
+    var(--gauge-normal) calc(var(--gauge-percentage, 0) * 0.6deg),
+    transparent calc(var(--gauge-percentage, 0) * 0.6deg),
+    transparent 360deg
+  );
+}
+
+.gauge.warning::before {
+  background: conic-gradient(
+    from 180deg,
+    var(--gauge-warning) 0deg,
+    var(--gauge-warning) calc(var(--gauge-percentage, 0) * 0.6deg),
+    transparent calc(var(--gauge-percentage, 0) * 0.6deg),
+    transparent 360deg
+  );
+}
+
+.gauge.critical::before {
+  background: conic-gradient(
+    from 180deg,
+    var(--gauge-critical) 0deg,
+    var(--gauge-critical) calc(var(--gauge-percentage, 0) * 0.6deg),
+    transparent calc(var(--gauge-percentage, 0) * 0.6deg),
+    transparent 360deg
+  );
+}
+
+/* Gauge tick marks */
+.gauge::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  
+  /* Tick marks using repeating conic gradient */
+  background: repeating-conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 8deg,
+    var(--border-highlight) 8deg,
+    var(--border-highlight) 9deg
+  );
+  
+  /* Mask to show only outer ring */
+  -webkit-mask: radial-gradient(transparent 60px, black 61px, black 70px, transparent 71px);
+  mask: radial-gradient(transparent 60px, black 61px, black 70px, transparent 71px);
+  
+  opacity: 0.3;
+}
+
+/* Gauge value display */
+.gauge-value {
+  font-size: 1.4rem;
+  color: var(--accent-cyan);
+  font-weight: bold;
+  z-index: 1;
+  
+  /* Glow effect */
+  text-shadow: 
+    0 0 10px var(--accent-cyan-glow),
+    0 0 20px var(--accent-cyan-glow);
+  
+  /* Smooth transition for value changes */
+  transition: 
+    color 0.5s ease,
+    text-shadow 0.5s ease,
+    transform 0.3s ease;
+}
+
+.gauge:hover .gauge-value {
+  transform: scale(1.1);
+  text-shadow: 
+    0 0 15px var(--accent-cyan-glow),
+    0 0 30px var(--accent-cyan-glow);
+}
+
+/* Animated needle (optional alternative visualization) */
+.gauge-needle {
+  position: absolute;
+  bottom: 50%;
+  left: 50%;
+  width: 3px;
+  height: 50px;
+  background: linear-gradient(to top, var(--accent-cyan), transparent);
+  transform-origin: bottom center;
+  transform: translateX(-50%) rotate(calc(var(--gauge-angle, 0) * 1deg));
+  border-radius: 2px;
+  
+  /* Smooth animation for needle movement */
+  transition: transform 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+  
+  box-shadow: 0 0 10px var(--accent-cyan-glow);
+}
+
+.gauge-needle::before {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  background: var(--accent-cyan);
+  border-radius: 50%;
+  transform: translateX(-50%);
+  box-shadow: 
+    0 0 10px var(--accent-cyan-glow),
+    inset 0 2px 4px rgba(255, 255, 255, 0.3);
+}
+
+/* Gauge labels */
+.gauge-labels {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
+.gauge-label {
+  position: absolute;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-weight: bold;
+}
+
+.gauge-label.min {
+  bottom: 20%;
+  left: 10%;
+}
+
+.gauge-label.max {
+  bottom: 20%;
+  right: 10%;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .gauge {
+    width: 120px;
+    height: 120px;
+  }
+  
+  .gauge::before {
+    width: 105px;
+    height: 105px;
+    -webkit-mask: radial-gradient(transparent 45px, black 46px);
+    mask: radial-gradient(transparent 45px, black 46px);
+  }
+  
+  .gauge::after {
+    width: 110px;
+    height: 110px;
+    -webkit-mask: radial-gradient(transparent 48px, black 49px, black 55px, transparent 56px);
+    mask: radial-gradient(transparent 48px, black 49px, black 55px, transparent 56px);
+  }
+  
+  .gauge-value {
+    font-size: 1.1rem;
+  }
+  
+  .gauge-needle {
+    height: 40px;
+  }
+}
+
+/* Frequency shift indicator */
+.frequency-shift-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  margin-top: 1rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  border-left: 3px solid var(--warning-yellow);
+  
+  /* Smooth transitions */
+  transition: 
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.2s ease;
+}
+
+.frequency-shift-indicator:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+  transform: translateX(3px);
+}
+
+/* Severity-based color coding */
+.frequency-shift-indicator.warning {
+  border-left-color: var(--warning-yellow);
+  background-color: rgba(255, 204, 0, 0.05);
+}
+
+.frequency-shift-indicator.critical {
+  border-left-color: var(--error-red);
+  background-color: rgba(255, 51, 102, 0.05);
+}
+
+.shift-icon {
+  font-size: 1.2rem;
+  color: var(--warning-yellow);
+  
+  /* Pulsing animation for critical shifts */
+  transition: color 0.3s ease;
+}
+
+.frequency-shift-indicator.critical .shift-icon {
+  color: var(--error-red);
+  animation: pulse-warning 2s ease-in-out infinite;
+}
+
+@keyframes pulse-warning {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.1);
+  }
+}
+
+.shift-text {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  
+  /* Smooth transition */
+  transition: color 0.3s ease;
+}
+
+.frequency-shift-indicator:hover .shift-text {
+  color: var(--text-primary);
+}
+
+/* Baseline indicator (when frequency is normal) */
+.frequency-baseline-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  margin-top: 1rem;
+  background-color: rgba(0, 255, 136, 0.05);
+  border-radius: 4px;
+  border-left: 3px solid var(--success-green);
+  
+  /* Smooth transitions */
+  transition: 
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.2s ease;
+}
+
+.frequency-baseline-indicator:hover {
+  background-color: rgba(0, 255, 136, 0.1);
+  transform: translateX(3px);
+}
+
+.baseline-icon {
+  font-size: 1.2rem;
+  color: var(--success-green);
+  font-weight: bold;
+}
+
+.baseline-text {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  
+  /* Smooth transition */
+  transition: color 0.3s ease;
+}
+
+.frequency-baseline-indicator:hover .baseline-text {
+  color: var(--text-primary);
+}

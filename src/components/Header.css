@@ -1,0 +1,117 @@
+.header {
+  background: var(--steel-gradient);
+  padding: 1.5rem 2rem;
+  border-bottom: 2px solid var(--accent-cyan);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  /* Enhanced shadow */
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(0, 217, 255, 0.1);
+  
+  position: relative;
+  z-index: 10;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  color: var(--accent-cyan);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  
+  /* Glow effect */
+  text-shadow: 
+    0 0 10px var(--accent-cyan-glow),
+    0 0 20px var(--accent-cyan-glow);
+  
+  /* Smooth transition */
+  transition: text-shadow 0.3s ease;
+}
+
+.header h1:hover {
+  text-shadow: 
+    0 0 15px var(--accent-cyan-glow),
+    0 0 30px var(--accent-cyan-glow);
+}
+
+.status-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  
+  /* Smooth transition */
+  transition: 
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.status-indicator:hover {
+  border-color: var(--accent-cyan);
+  box-shadow: 0 0 10px rgba(0, 217, 255, 0.2);
+}
+
+.status-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+  
+  /* Enhanced glow */
+  box-shadow: 0 0 10px currentColor;
+}
+
+.status-dot.connected {
+  background-color: var(--success-green);
+  box-shadow: 
+    0 0 10px var(--success-green),
+    0 0 20px rgba(0, 255, 136, 0.5);
+}
+
+.status-dot.disconnected {
+  background-color: var(--error-red);
+  box-shadow: 
+    0 0 10px var(--error-red),
+    0 0 20px rgba(255, 51, 102, 0.5);
+}
+
+@keyframes pulse {
+  0%, 100% { 
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+}
+
+.status-text {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  
+  /* Smooth transition */
+  transition: color 0.3s ease;
+}
+
+.status-indicator:hover .status-text {
+  color: var(--accent-cyan);
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    gap: 1rem;
+    text-align: center;
+  }
+  
+  .header h1 {
+    font-size: 1.2rem;
+  }
+}

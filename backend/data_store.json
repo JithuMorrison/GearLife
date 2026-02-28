@@ -1,0 +1,31 @@
+{
+  "time": [
+    0.0,
+    0.001,
+    0.002,
+    0.003,
+    0.004,
+    0.005,
+    0.006
+  ],
+  "acceleration": [
+    10.0,
+    8.0,
+    6.0,
+    4.0,
+    2.0,
+    1.0,
+    0.5
+  ],
+  "frequency": [],
+  "amplitude": [],
+  "damping_factor": 0.0,
+  "natural_frequency": 0.0,
+  "lifetime_time": 0.0,
+  "lifetime_freq": 0.0,
+  "lifetime_natural": 0.0,
+  "lifetime_damping": 0.0,
+  "average_lifetime": 0.0,
+  "ai_lifetime": 0.0,
+  "new_data_available": false
+}

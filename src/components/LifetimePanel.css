@@ -1,0 +1,68 @@
+.lifetime-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lifetime-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-radius: 4px;
+  border-left: 3px solid var(--accent-blue);
+  
+  /* Smooth transitions for updates */
+  transition: 
+    background-color 0.3s ease,
+    border-color 0.3s ease,
+    transform 0.2s ease;
+}
+
+.lifetime-item:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+  border-color: var(--accent-cyan);
+  transform: translateX(3px);
+}
+
+.lifetime-item.average {
+  border-left-color: var(--accent-cyan);
+  background-color: rgba(0, 217, 255, 0.1);
+  font-weight: bold;
+  
+  /* Enhanced glow for average */
+  box-shadow: 0 0 15px rgba(0, 217, 255, 0.2);
+}
+
+.lifetime-item.average:hover {
+  background-color: rgba(0, 217, 255, 0.15);
+  box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+}
+
+.lifetime-label {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  
+  /* Smooth transition */
+  transition: color 0.3s ease;
+}
+
+.lifetime-item:hover .lifetime-label {
+  color: var(--text-primary);
+}
+
+.lifetime-value {
+  color: var(--accent-cyan);
+  font-weight: bold;
+  
+  /* Smooth transition for value updates */
+  transition: 
+    color 0.3s ease,
+    text-shadow 0.3s ease;
+  
+  text-shadow: 0 0 5px var(--accent-cyan-glow);
+}
+
+.lifetime-item:hover .lifetime-value {
+  text-shadow: 0 0 10px var(--accent-cyan-glow);
+}

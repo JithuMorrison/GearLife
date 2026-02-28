@@ -1,0 +1,83 @@
+.error-panel {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, rgba(255, 51, 102, 0.15), rgba(255, 51, 102, 0.05));
+  border-color: var(--error-red);
+  
+  /* Enhanced shadow for prominence */
+  box-shadow: 
+    0 4px 6px rgba(0, 0, 0, 0.3),
+    0 0 30px rgba(255, 51, 102, 0.3);
+  
+  /* Smooth entrance animation */
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.error-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: var(--error-red);
+  font-size: 2rem;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  
+  /* Smooth transition */
+  transition: 
+    transform 0.2s ease,
+    color 0.2s ease,
+    text-shadow 0.2s ease;
+  
+  border-radius: 50%;
+}
+
+.close-btn:hover {
+  transform: scale(1.2) rotate(90deg);
+  color: #ff6688;
+  text-shadow: 0 0 10px rgba(255, 51, 102, 0.5);
+  background-color: rgba(255, 51, 102, 0.1);
+}
+
+.close-btn:active {
+  transform: scale(1.0) rotate(90deg);
+}
+
+.error-message {
+  color: var(--error-red);
+  padding: 1rem;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.3);
+  border-left: 3px solid var(--error-red);
+  
+  /* Smooth transition */
+  transition: background-color 0.3s ease;
+  
+  font-family: 'Roboto Mono', 'Courier New', monospace;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.error-message:hover {
+  background-color: rgba(0, 0, 0, 0.4);
+}
