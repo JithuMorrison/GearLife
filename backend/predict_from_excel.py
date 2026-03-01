@@ -46,18 +46,38 @@ def load_excel_data(filepath):
             time_col = df.columns[0]
             accel_col = df.columns[1]
             
-            time = df[time_col].values
-            acceleration = df[accel_col].values
+            print(f"Using columns: '{time_col}' and '{accel_col}'")
+            
+            # Function to clean values with units (e.g., "4.132m" -> 4.132)
+            def clean_numeric(series):
+                """Remove unit suffixes like 'm', 'k', etc. and convert to float"""
+                if series.dtype == 'object':
+                    # Remove common unit suffixes and convert
+                    cleaned = series.astype(str).str.replace(r'[a-zA-Z]+$', '', regex=True)
+                    return pd.to_numeric(cleaned, errors='coerce')
+                else:
+                    return pd.to_numeric(series, errors='coerce')
+            
+            # Convert to numeric, handling unit suffixes
+            time = clean_numeric(df[time_col]).values
+            acceleration = clean_numeric(df[accel_col]).values
+            
+            print(f"Raw data preview:")
+            print(f"  Time: {df[time_col].head(3).tolist()}")
+            print(f"  Acceleration: {df[accel_col].head(3).tolist()}")
+            
+            # Check if time column looks valid
+            time_valid = np.sum(~np.isnan(time)) > 0
             
             # If time column is just index, create time array
-            if not np.all(np.diff(time) > 0):
-                print("Time column appears to be index, creating time array...")
+            if not time_valid or not np.all(np.diff(time[~np.isnan(time)]) > 0):
+                print("Time column appears invalid or non-sequential, creating time array...")
                 # Assume 1000 Hz sampling rate (adjust if needed)
                 sampling_rate = 1000.0
                 time = np.arange(len(acceleration)) / sampling_rate
         else:
             # Only one column - assume it's acceleration
-            acceleration = df.iloc[:, 0].values
+            acceleration = pd.to_numeric(df.iloc[:, 0], errors='coerce').values
             # Create time array assuming 1000 Hz sampling rate
             sampling_rate = 1000.0
             time = np.arange(len(acceleration)) / sampling_rate
@@ -66,8 +86,22 @@ def load_excel_data(filepath):
         
         # Remove any NaN values
         valid_mask = ~(np.isnan(time) | np.isnan(acceleration))
+        num_invalid = np.sum(~valid_mask)
+        if num_invalid > 0:
+            print(f"Removing {num_invalid} invalid/NaN values...")
+        
         time = time[valid_mask]
         acceleration = acceleration[valid_mask]
+        
+        if len(time) == 0:
+            raise ValueError("No valid data found after cleaning!")
+        
+        # Check if acceleration values look like they're in milli units (very small)
+        max_accel = np.abs(acceleration).max()
+        if max_accel < 1.0:
+            print(f"⚠ Acceleration values appear to be in milli-units (max: {max_accel:.6f})")
+            print(f"Converting to standard units by multiplying by 1000...")
+            acceleration = acceleration * 1000.0
         
         print(f"\nData loaded successfully!")
         print(f"Time range: {time[0]:.4f} to {time[-1]:.4f} seconds")
